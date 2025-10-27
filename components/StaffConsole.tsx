@@ -109,14 +109,26 @@ export function StaffConsole() {
   }
 
   async function exportCsv() {
-    const response = await fetch(`/api/export?from=${reportDate}&to=${reportDate}`);
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `bulpan-${reportDate}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    try {
+      const response = await fetch(`/api/export?from=${reportDate}&to=${reportDate}`);
+      if (!response.ok) {
+        throw new Error("Export indisponible");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `bulpan-${reportDate}.csv`;
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("Impossible de télécharger le fichier d'export pour le moment.");
+    }
   }
 
   const kitchenColumns = useMemo(
