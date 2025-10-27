@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100">
+  <rect width="160" height="100" fill="#ffe6d9" rx="16" />
+  <ellipse cx="80" cy="58" rx="60" ry="24" fill="#fdd4a3" stroke="#c54f2b" stroke-width="4" />
+  <path d="M30 50c40-12 60-12 100 0" fill="none" stroke="#c54f2b" stroke-width="4" stroke-linecap="round" />
+  <path d="M40 45c20-12 80-12 100 0" fill="none" stroke="#9c2a2a" stroke-width="3" stroke-dasharray="6 6" />
+  <text x="50%" y="84%" dominant-baseline="middle" text-anchor="middle" fill="#c54f2b" font-family="sans-serif" font-size="16">Ramen</text>
+</svg>
