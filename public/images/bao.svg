@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100">
+  <rect width="160" height="100" fill="#fdf0ff" rx="16" />
+  <ellipse cx="80" cy="52" rx="50" ry="26" fill="#f8d1ff" stroke="#b156d8" stroke-width="4" />
+  <path d="M35 40c28-16 62-16 90 0" fill="none" stroke="#b156d8" stroke-width="3" stroke-linecap="round" />
+  <text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" fill="#b156d8" font-family="sans-serif" font-size="16">Bao</text>
+</svg>

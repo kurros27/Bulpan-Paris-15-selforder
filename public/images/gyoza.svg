@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100">
+  <rect width="160" height="100" fill="#fff3e8" rx="16" />
+  <path d="M20 60c20-40 100-40 120 0" fill="#f9c784" stroke="#d87a37" stroke-width="4" stroke-linecap="round" />
+  <path d="M30 54c18-26 82-26 100 0" fill="none" stroke="#d87a37" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6" />
+  <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" fill="#d87a37" font-family="sans-serif" font-size="16">Gyoza</text>
+</svg>

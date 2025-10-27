@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100">
+  <rect width="160" height="100" fill="#e6f7ff" rx="16" />
+  <circle cx="60" cy="55" r="22" fill="#b5e1ff" stroke="#3d8cc4" stroke-width="4" />
+  <circle cx="100" cy="55" r="22" fill="#cdefff" stroke="#3d8cc4" stroke-width="4" />
+  <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" fill="#3d8cc4" font-family="sans-serif" font-size="16">Mochi</text>
+</svg>

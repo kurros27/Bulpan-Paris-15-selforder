@@ -1,66 +1,80 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { ClientMenu } from "../components/ClientMenu";
+import { CheckoutPanel } from "../components/CheckoutPanel";
+import { OrderTracker } from "../components/OrderTracker";
+import { LanguageToggle } from "../components/LanguageToggle";
+import { Order, ServiceType } from "../lib/types";
+
+interface DiscountOption {
+  id: string;
+  code: string;
+  label: string;
+  type: "amount" | "percentage";
+  value: number;
+}
+
+type View = "menu" | "checkout" | "status";
+
+export default function HomePage() {
+  const params = useSearchParams();
+  const tableParam = params.get("table") ?? undefined;
+  const defaultServiceType: ServiceType = tableParam ? "dine_in" : "takeaway";
+  const [serviceTypeSelection, setServiceTypeSelection] = useState<ServiceType | null>(null);
+  const [view, setView] = useState<View>("menu");
+  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [discounts, setDiscounts] = useState<DiscountOption[]>([]);
+
+  const serviceType = serviceTypeSelection ?? defaultServiceType;
+
+  const tableLabel = useMemo(() => (tableParam ? `Table ${tableParam}` : ""), [tableParam]);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="app-shell">
+      <header className="topbar">
+        <div>
+          <h1>Bulpan Paris 15</h1>
+          <p>Commandez en toute autonomie {tableLabel && `· ${tableLabel}`}</p>
+        </div>
+        <LanguageToggle />
+      </header>
+
+      {view === "menu" && (
+        <ClientMenu
+          serviceType={serviceType}
+          onServiceTypeChange={(type) => setServiceTypeSelection(type)}
+          tableId={tableParam ?? undefined}
+          onCheckout={(codes) => {
+            setDiscounts(codes);
+            setView("checkout");
+          }}
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+
+      {view === "checkout" && (
+        <CheckoutPanel
+          serviceType={serviceType}
+          tableId={tableParam ?? undefined}
+          discounts={discounts}
+          onClose={() => setView("menu")}
+          onSuccess={(order) => {
+            setActiveOrder(order);
+            setView("status");
+          }}
+        />
+      )}
+
+      {view === "status" && activeOrder && (
+        <OrderTracker
+          order={activeOrder}
+          onClose={() => {
+            setActiveOrder(null);
+            setView("menu");
+          }}
+        />
+      )}
+    </main>
   );
 }
