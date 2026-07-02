@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QRServe — Plateforme SaaS de commande par QR Code
 
-## Getting Started
+Application web multi-restaurants : menu digital par QR Code, commandes en temps
+réel, tableaux de bord KPI, exports Excel et API d'intégration.
 
-First, run the development server:
+## Fonctionnalités
+
+**Expérience client (sans compte)**
+- Scan du QR Code → menu mobile-first (`/menu/{slug}`, `?table=` pré-rempli)
+- Photos, catégories, allergènes, étiquettes (Nouveau, Épicé, Vegan…)
+- Options (choix unique) et suppléments payants (multi-choix), commentaires
+- Panier, sur place / à emporter, écran de confirmation et suivi de commande
+
+**Restaurateur (`/dashboard`)**
+- Tableau de bord temps réel : CA jour/semaine/mois avec évolution, commandes
+  par statut, panier moyen, clients, temps moyen de préparation, taux d'annulation
+- Graphiques interactifs : évolution du CA, commandes par heure, ventes par
+  catégorie, sur place / à emporter, carte thermique jour × heure (+ vue tableau)
+- Commandes en direct (SSE) avec notification sonore et changement de statut
+  (Nouvelle → Acceptée → En préparation → Prête → Servie → Terminée / Annulée)
+- Gestion de la carte : catégories et produits illimités, options/suppléments,
+  disponibilité, réorganisation par glisser-déposer, import/export Excel (.xlsx)
+- Meilleures ventes par période (+ moins vendus, plus rentables, en rupture,
+  jamais commandés), historique filtrable, export Excel multi-feuilles mis en forme
+- QR Codes multiples (salle, terrasse, table…) : téléchargement, impression, partage
+- Rapports quotidiens/hebdomadaires/mensuels avec recommandations, planification e-mail
+- Équipe multi-rôles (Administrateur, Manager, Serveur), notifications, paramètres
+  (logo, horaires, réseaux sociaux, devise, TVA, couleur de marque, mode sombre)
+- Clés d'API pour Google Sheets, Power BI, Looker Studio, Zapier, Make… (voir `docs/API.md`)
+
+**Super administrateur (`/admin`)**
+- Gestion des restaurants (suspension, suppression, abonnements FREE/STARTER/PRO)
+- Statistiques globales (GMV, MRR), utilisateurs, journal d'activité complet
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Recharts ·
+API REST via route handlers (architecture modulaire) · PostgreSQL · Prisma 7 ·
+SSE pour le temps réel · ExcelJS · JWT (jose) + bcrypt · Zod
+
+## Démarrage
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env          # renseigner DATABASE_URL et JWT_SECRET
+npm install
+npx prisma migrate deploy     # ou migrate dev en développement
+npm run db:seed               # données de démo (facultatif)
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ou avec Docker : `docker compose up --build` (PostgreSQL inclus).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Comptes de démonstration (après `npm run db:seed`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Rôle | E-mail | Mot de passe |
+|---|---|---|
+| Super admin | `admin@qrserve.fr` | `admin1234` |
+| Restaurateur | `demo@bulpan.fr` | `demo1234` |
+| Manager | `manager@bulpan.fr` | `demo1234` |
 
-## Learn More
+Menu de démo : [`/menu/bulpan-paris-15`](http://localhost:3000/menu/bulpan-paris-15)
 
-To learn more about Next.js, take a look at the following resources:
+## Import Excel de la carte
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Fichier `.xlsx`, feuille « Carte » (ou première feuille), colonnes :
+`Catégorie · Nom · Description · Prix · Disponibilité · Allergènes ·
+Temps de préparation · URL de la photo`. Les catégories et produits sont créés
+automatiquement ; l'export (`Carte → Exporter`) produit exactement ce format.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Sécurité
 
-## Deploy on Vercel
+JWT httpOnly (SameSite=Lax, protection CSRF), permissions par rôle vérifiées
+côté API, validation Zod de toutes les entrées, prix recalculés côté serveur,
+mots de passe bcrypt (12 rounds), clés d'API hachées (SHA-256), journal
+d'activité, réinitialisation de mot de passe par jeton à expiration.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  (auth)/            connexion, inscription, mot de passe oublié
+  menu/[slug]/       menu public client + suivi de commande
+  dashboard/         espace restaurateur
+  admin/             espace super administrateur
+  api/               API REST modulaire (auth, public, carte, commandes,
+                     stats, exports, v1 intégrations, admin)
+components/          UI, graphiques (Recharts), coquilles dashboard/admin
+lib/                 prisma, auth JWT, validation Zod, stats SQL, ExcelJS,
+                     bus d'événements SSE, journalisation
+prisma/              schéma (16 modèles), migrations, seed de démo
+docs/API.md          documentation de l'API d'intégration
+```
+
+Le temps réel utilise un bus d'événements en mémoire (un seul processus).
+Pour un déploiement multi-instances, brancher Redis Pub/Sub dans
+`lib/events.ts` (l'API publish/subscribe est déjà isolée).
+
+## Évolutions prévues par le schéma
+
+Paiement en ligne (modèle `Payment` prêt pour Stripe/PayPal), fidélité,
+réservations, click & collect, multi-devises (champ `currency`), stocks.
